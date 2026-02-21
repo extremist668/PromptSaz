@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptSaz - پرامپٹ ساز</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;700&family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #475569;
+            --success: #22c55e;
+            --accent: #f59e0b;
+            --pink: #ec4899;
+        }
+
+        [data-theme="light"] {
+            --bg: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-input: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { font-size: 2rem; }
+        .logo-text { font-size: 1.75rem; font-weight: 700; }
+        .logo-text-urdu { font-family: 'Noto Nastaliq Urdu', serif; font-size: 1.5rem; }
+
+        .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .theme-toggle {
+            padding: 0.5rem 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .theme-toggle:hover { background: rgba(255,255,255,0.2); }
+
+        .lang-toggle { display: flex; gap: 0.5rem; }
+
+        .lang-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: var(--primary);
+            border-color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .container { grid-template-columns: 1fr; padding: 1rem; }
+            .header-center { position: static; transform: none; margin: 0.5rem 0; }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            transition: background 0.3s;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 0.75rem;
+        }
+
+        .toggle-icon.collapsed { transform: rotate(-90deg); }
+
+        .card-body { display: block; margin-top: 1rem; }
+        .card-body.collapsed { display: none; }
+
+        .input-group { margin-bottom: 1.5rem; }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .input-label .required { color: var(--accent); }
+
+        textarea, select {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea { min-height: 120px; resize: vertical; }
+
+        .grid-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--text);
+        }
+
+        .option-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .option-btn .emoji { font-size: 1.5rem; }
+
+        .aspect-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .aspect-btn {
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .aspect-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
+
+        .aspect-btn.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .aspect-visual {
+            width: 50px;
+            height: 40px;
+            margin: 0 auto 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .aspect-label { font-size: 0.7rem; color: var(--text-muted); }
+        .aspect-dim { font-size: 0.6rem; color: var(--text-muted); }
+
+        .design-category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            background: var(--bg-input);
+            padding: 0.25rem;
+            border-radius: 10px;
+        }
+
+        .design-category-tab {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .design-category-tab:hover { color: var(--text); }
+
+        .design-category-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .design-category-content {
+            display: none;
+        }
+
+        .design-category-content.active {
+            display: block;
+        }
+
+        .urdu-font-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .urdu-font-section.active {
+            display: block;
+        }
+
+        .urdu-font-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .urdu-font-btn {
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .urdu-font-btn:hover { border-color: var(--primary); }
+
+        .urdu-font-btn.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .urdu-font-btn .font-preview {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .urdu-font-btn .font-name {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .color-scheme-section { margin-bottom: 1.5rem; }
+        
+        .color-mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .color-mode-btn {
+            flex: 1;
+            padding: 0.6rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text);
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .color-mode-btn:hover { border-color: var(--primary); }
+        .color-mode-btn.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .color-count-section {
+            margin-bottom: 1rem;
+        }
+
+        .color-count-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .color-count-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .color-count-btn:hover { background: var(--primary); border-color: var(--primary); }
+        .color-count-num { font-size: 1.5rem; font-weight: 700; min-width: 40px; text-align: center; }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .palette-btn {
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .palette-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .palette-btn.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .palette-preview {
+            display: flex;
+            height: 30px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .palette-color {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .palette-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .palette-colors-list {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .palette-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .selected-palette-preview {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: 10px;
+            align-items: center;
+        }
+
+        .selected-palette-colors {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .selected-color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .selected-color-swatch:hover { transform: scale(1.1); }
+        .selected-color-swatch.selected {
+            border-color: white;
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .selected-palette-info {
+            flex: 2;
+        }
+
+        .selected-palette-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .selected-palette-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .detail-btn {
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text);
+        }
+
+        .detail-btn:hover { border-color: var(--primary); }
+
+        .detail-btn.selected {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+        }
+
+        .detail-check {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .detail-btn.selected .detail-check {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .random-generate-btn {
+            width: 100%;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, var(--pink), #8b5cf6);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .random-generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .generate-btn {
+            flex: 1;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .generate-btn.generate-image {
+            background: linear-gradient(135deg, var(--pink), #f43f5e);
+        }
+
+        .generate-btn.generate-image:hover {
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.4);
+        }
+
+        .output-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .output-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .variant-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .variant-tab {
+            padding: 0.4rem 0.85rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .variant-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .output-box {
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .output-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .output-text {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .action-btn.copied {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading.active { display: block; }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+
+        .image-preview-section {
+            margin-top: 1.5rem;
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .image-preview-section.active { display: block; }
+
+        .image-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .image-preview-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .api-badge {
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .image-preview-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #0f0f1a;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .image-loader {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .image-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #ff6b9d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .image-loading-text {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .image-action-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+
+        .image-action-btn:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .image-action-btn.download {
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            border: none;
+            color: white;
+        }
+
+        .image-action-btn.download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .model-section { margin-bottom: 1rem; }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .model-btn {
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text);
+        }
+
+        .model-btn:hover { border-color: var(--primary); }
+
+        .model-btn.selected {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+        }
+
+        .history-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-top: 1rem;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .history-title { font-size: 1.1rem; font-weight: 600; }
+
+        .history-list { max-height: 300px; overflow-y: auto; }
+
+        .history-item {
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover { background: rgba(99, 102, 241, 0.2); }
+
+        .history-item-text {
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .history-item-meta { font-size: 0.7rem; color: var(--text-muted); }
+
+        .clear-history {
+            padding: 0.4rem 0.75rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .clear-history:hover { border-color: #ef4444; color: #ef4444; }
+
+        .variant-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .variant-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .variant-btn:hover { background: var(--primary); border-color: var(--primary); }
+        .variant-num { font-size: 1.5rem; font-weight: 700; min-width: 40px; text-align: center; }
+
+        [dir="rtl"] { text-align: right; }
+        
+        @media (max-width: 768px) {
+            .header { padding: 1rem; }
+            .logo-text { font-size: 1.25rem; }
+            .grid-options { grid-template-columns: repeat(3, 1fr); }
+            .detail-grid { grid-template-columns: repeat(2, 1fr); }
+            .header-center { display: none; }
+            .btn-group { flex-direction: column; }
+            .palette-grid { grid-template-columns: 1fr; }
+            .selected-palette-preview { flex-direction: column; }
+            .selected-palette-colors { flex-wrap: wrap; justify-content: center; }
+            .design-category-tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">✨</span>
+            <div>
+                <div class="logo-text">PromptSaz</div>
+                <div class="logo-text-urdu">پرامپٹ ساز</div>
+            </div>
+        </div>
+        
+        <div class="header-center">
+            <div class="logo-text" style="font-size: 1.5rem;">PromptSaz</div>
+            <div class="logo-text-urdu" style="font-size: 1.25rem;">پرامپٹ ساز</div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+            <div class="lang-toggle">
+                <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">EN</button>
+                <button class="lang-btn" data-lang="ur" onclick="setLanguage('ur')">UR</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="input-section">
+            <!-- Input -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>📝</span> <span class="lang-text" data-en="Input Description" data-ur="تفصیل ان پٹ">Input Description</span></h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <label class="input-label"><span class="required">*</span> <span class="lang-text" data-en="Describe your image concept" data-ur="اپنے تصویر کا تصور لکھیں">Describe your image concept</span></label>
+                        <textarea id="inputText" placeholder="A beautiful sunset over mountains with birds flying..."></textarea>
+                    </div>
+                    
+                    <button class="random-generate-btn" onclick="generateRandomPrompt()">
+                        <span>🎲</span> <span class="lang-text" data-en="Generate Random Prompt" data-ur="رینڈم پرامپٹ بنائیں">Generate Random Prompt</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Platform -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>📱</span> <span class="lang-text" data-en="Platform" data-ur="پلیٹ فارم">Platform</span></h2>
+                    <span class="toggle-icon collapsed">▼</span>
+                </div>
+                <div class="card-body collapsed">
+                    <div class="grid-options" id="platformGrid">
+                        <button class="option-btn selected" data-value="instagram"><span class="emoji">📸</span><span>Instagram</span></button>
+                        <button class="option-btn" data-value="facebook"><span class="emoji">📘</span><span>Facebook</span></button>
+                        <button class="option-btn" data-value="twitter"><span class="emoji">🐦</span><span>Twitter/X</span></button>
+                        <button class="option-btn" data-value="youtube"><span class="emoji">▶️</span><span>YouTube</span></button>
+                        <button class="option-btn" data-value="tiktok"><span class="emoji">🎵</span><span>TikTok</span></button>
+                        <button class="option-btn" data-value="linkedin"><span class="emoji">💼</span><span>LinkedIn</span></button>
+                        <button class="option-btn" data-value="pinterest"><span class="emoji">📌</span><span>Pinterest</span></button>
+                        <button class="option-btn" data-value="web"><span class="emoji">🌐</span><span>Website</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aspect Ratio -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>📐</span> <span class="lang-text" data-en="Aspect Ratio" data-ur="Aspect Ratio">Aspect Ratio</span></h2>
+                    <span class="toggle-icon collapsed">▼</span>
+                </div>
+                <div class="card-body collapsed">
+                    <div class="aspect-grid" id="aspectGrid">
+                        <button class="aspect-btn selected" data-value="1:1"><div class="aspect-visual">1:1</div><div class="aspect-label">Square</div><div class="aspect-dim">1080×1080</div></button>
+                        <button class="aspect-btn" data-value="9:16"><div class="aspect-visual" style="width:35px;height:55px;">9:16</div><div class="aspect-label">Portrait</div><div class="aspect-dim">1080×1920</div></button>
+                        <button class="aspect-btn" data-value="16:9"><div class="aspect-visual" style="width:55px;height:32px;">16:9</div><div class="aspect-label">Landscape</div><div class="aspect-dim">1920×1080</div></button>
+                        <button class="aspect-btn" data-value="4:3"><div class="aspect-visual" style="width:48px;height:36px;">4:3</div><div class="aspect-label">Standard</div><div class="aspect-dim">1440×1080</div></button>
+                        <button class="aspect-btn" data-value="4:5"><div class="aspect-visual" style="width:38px;height:48px;">4:5</div><div class="aspect-label">Portrait</div><div class="aspect-dim">1080×1350</div></button>
+                        <button class="aspect-btn" data-value="2:3"><div class="aspect-visual" style="width:38px;height:55px;">2:3</div><div class="aspect-label">Photo</div><div class="aspect-dim">1080×1620</div></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Scheme -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>🎨</span> <span class="lang-text" data-en="Color Scheme" data-ur="رنگ اسکیم">Color Scheme</span></h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-body">
+                    <div class="color-mode-toggle">
+                        <button class="color-mode-btn selected" data-mode="default" onclick="setColorMode('default')">
+                            <span class="lang-text" data-en="🎯 Auto (Default)" data-ur="🎯 آٹو (ڈیفالٹ)">🎯 Auto (Default)</span>
+                        </button>
+                        <button class="color-mode-btn" data-mode="manual" onclick="setColorMode('manual')">
+                            <span class="lang-text" data-en="✋ Manual Select" data-ur="✋ دستی انتخاب">✋ Manual Select</span>
+                        </button>
+                    </div>
+
+                    <div class="color-count-section" id="colorCountSection" style="display: none;">
+                        <label class="input-label"><span class="lang-text" data-en="Number of Colors" data-ur="رنگوں کی تعداد">Number of Colors</span></label>
+                        <div class="color-count-control">
+                            <button class="color-count-btn" onclick="adjustColorCount(-1)">−</button>
+                            <span class="color-count-num" id="colorCountNum">3</span>
+                            <button class="color-count-btn" onclick="adjustColorCount(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div id="paletteSelection">
+                        <label class="input-label"><span class="lang-text" data-en="Select Color Palette" data-ur="رنگ پیلیٹ کا انتخاب کریں">Select Color Palette</span></label>
+                        <div class="palette-grid" id="paletteGrid"></div>
+                    </div>
+
+                    <div class="selected-palette-preview" id="selectedPalettePreview">
+                        <div class="selected-palette-colors" id="selectedPaletteColors"></div>
+                        <div class="selected-palette-info">
+                            <div class="selected-palette-title" id="selectedPaletteTitle">Default Palette</div>
+                            <div class="selected-palette-desc" id="selectedPaletteDesc">Auto-selected based on design style</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>🔍</span> <span class="lang-text" data-en="Details" data-ur="تفصیلات">Details</span></h2>
+                    <span class="toggle-icon collapsed">▼</span>
+                </div>
+                <div class="card-body collapsed">
+                    <div class="detail-grid" id="detailGrid">
+                        <button class="detail-btn selected" data-value="high-quality"><span class="detail-check">✓</span><span class="lang-text" data-en="High Quality" data-ur="اعلی معیار">High Quality</span></button>
+                        <button class="detail-btn" data-value="ultra-detailed"><span class="detail-check">✓</span><span class="lang-text" data-en="Ultra Detailed" data-ur="الٹرا تفصیلی">Ultra Detailed</span></button>
+                        <button class="detail-btn" data-value="8k"><span class="detail-check">✓</span><span>8K</span></button>
+                        <button class="detail-btn" data-value="4k"><span class="detail-check">✓</span><span>4K</span></button>
+                        <button class="detail-btn" data-value="photorealistic"><span class="detail-check">✓</span><span class="lang-text" data-en="Photorealistic" data-ur="فوٹو ریلسٹک">Photorealistic</span></button>
+                        <button class="detail-btn" data-value="cinematic-lighting"><span class="detail-check">✓</span><span class="lang-text" data-en="Cinematic Lighting" data-ur="سینما لائٹنگ">Cinematic Lighting</span></button>
+                        <button class="detail-btn" data-value="soft-lighting"><span class="detail-check">✓</span><span class="lang-text" data-en="Soft Lighting" data-ur="نرم روشنی">Soft Lighting</span></button>
+                        <button class="detail-btn" data-value="golden-hour"><span class="detail-check">✓</span><span class="lang-text" data-en="Golden Hour" data-ur="سہ پہر">Golden Hour</span></button>
+                        <button class="detail-btn" data-value="bokeh"><span class="detail-check">✓</span><span class="lang-text" data-en="Bokeh Effect" data-ur="بوکے اثر">Bokeh Effect</span></button>
+                        <button class="detail-btn" data-value="depth-of-field"><span class="detail-check">✓</span><span class="lang-text" data-en="Depth of Field" data-ur="فیلڈ کی گہرائی">Depth of Field</span></button>
+                        <button class="detail-btn" data-value="hdr"><span class="detail-check">✓</span><span>HDR</span></button>
+                        <button class="detail-btn" data-value="studio-lighting"><span class="detail-check">✓</span><span class="lang-text" data-en="Studio Lighting" data-ur="اسٹوڈیو روشنی">Studio Lighting</span></button>
+                        <button class="detail-btn" data-value="masterpiece"><span class="detail-check">✓</span><span class="lang-text" data-en="Masterpiece" data-ur="شاہکار">Masterpiece</span></button>
+                        <button class="detail-btn" data-value="award-winning"><span class="detail-check">✓</span><span class="lang-text" data-en="Award Winning" data-ur="ایوارڈ یافتہ">Award Winning</span></button>
+                        <button class="detail-btn" data-value="trending"><span class="detail-check">✓</span><span class="lang-text" data-en="Trending" data-ur="ٹرینڈنگ">Trending</span></button>
+                        <button class="detail-btn" data-value="vintage"><span class="detail-check">✓</span><span class="lang-text" data-en="Vintage Look" data-ur="قدیم انداز">Vintage Look</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Design Style with Categories -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>🎭</span> <span class="lang-text" data-en="Design Style" data-ur="ڈیزائن اسٹائل">Design Style</span></h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-body">
+                    <!-- Category Tabs -->
+                    <div class="design-category-tabs">
+                        <button class="design-category-tab active" data-category="general" onclick="switchDesignCategory('general')">
+                            🌍 <span class="lang-text" data-en="General" data-ur="عام">General</span>
+                        </button>
+                        <button class="design-category-tab" data-category="rtl" onclick="switchDesignCategory('rtl')">
+                            🇸🇦 <span class="lang-text" data-en="Urdu/Arabic/Farsi" data-ur="اردو/عربی">Urdu/Arabic/Farsi</span>
+                        </button>
+                    </div>
+
+                    <!-- General Designs -->
+                    <div class="design-category-content active" id="generalDesignContent">
+                        <div class="grid-options" id="designStyleGrid">
+                            <button class="option-btn selected" data-value="realistic"><span class="emoji">📸</span><span class="lang-text" data-en="Realistic" data-ur="حقیقت پسند">Realistic</span></button>
+                            <button class="option-btn" data-value="digital-art"><span class="emoji">🎨</span><span class="lang-text" data-en="Digital Art" data-ur="ڈیجیٹل">Digital Art</span></button>
+                            <button class="option-btn" data-value="3d-render"><span class="emoji">🎲</span><span class="lang-text" data-en="3D Render" data-ur="3D رینڈر">3D Render</span></button>
+                            <button class="option-btn" data-value="illustration"><span class="emoji">✏️</span><span class="lang-text" data-en="Illustration" data-ur="تصویر">Illustration</span></button>
+                            <button class="option-btn" data-value="anime"><span class="emoji">🎌</span><span class="lang-text" data-en="Anime" data-ur="اینیمے">Anime</span></button>
+                            <button class="option-btn" data-value="abstract"><span class="emoji">🔮</span><span class="lang-text" data-en="Abstract" data-ur="ابستریکٹ">Abstract</span></button>
+                            <button class="option-btn" data-value="minimalist"><span class="emoji">⬜</span><span class="lang-text" data-en="Minimalist" data-ur="مینیمال">Minimalist</span></button>
+                            <button class="option-btn" data-value="watercolor"><span class="emoji">💧</span><span class="lang-text" data-en="Watercolor" data-ur="پانی رنگ">Watercolor</span></button>
+                            <button class="option-btn" data-value="vintage"><span class="emoji">📷</span><span class="lang-text" data-en="Vintage" data-ur="قدیم">Vintage</span></button>
+                            <button class="option-btn" data-value="pop-art"><span class="emoji">💥</span><span class="lang-text" data-en="Pop Art" data-ur="پوپ آرٹ">Pop Art</span></button>
+                            <button class="option-btn" data-value="cyberpunk"><span class="emoji">🌃</span><span class="lang-text" data-en="Cyberpunk" data-ur="سائبرپنک">Cyberpunk</span></button>
+                            <button class="option-btn" data-value="fantasy"><span class="emoji">🦄</span><span class="lang-text" data-en="Fantasy" data-ur="فانٹیسی">Fantasy</span></button>
+                            <button class="option-btn" data-value="infographic"><span class="emoji">📊</span><span class="lang-text" data-en="Infographic" data-ur="انفوگرافک">Infographic</span></button>
+                            <button class="option-btn" data-value="bold"><span class="emoji">💪</span><span class="lang-text" data-en="Bold" data-ur="بولڈ">Bold</span></button>
+                            <button class="option-btn" data-value="editorial"><span class="emoji">📰</span><span class="lang-text" data-en="Editorial" data-ur="ایڈیٹوریل">Editorial</span></button>
+                            <button class="option-btn" data-value="lifelike"><span class="emoji">🧬</span><span class="lang-text" data-en="Lifelike" data-ur="لائف لائک">Lifelike</span></button>
+                            <button class="option-btn" data-value="commercial"><span class="emoji">💼</span><span class="lang-text" data-en="Commercial" data-ur="کامرس">Commercial</span></button>
+                            <button class="option-btn" data-value="oil-painting"><span class="emoji">🖼️</span><span class="lang-text" data-en="Oil Paint" data-ur="تیل رنگ">Oil Paint</span></button>
+                            <button class="option-btn" data-value="pixel-art"><span class="emoji">👾</span><span class="lang-text" data-en="Pixel Art" data-ur="پکسل">Pixel Art</span></button>
+                            <button class="option-btn" data-value="concept-art"><span class="emoji">🎭</span><span class="lang-text" data-en="Concept Art" data-ur="کانسیپٹ">Concept Art</span></button>
+                        </div>
+                    </div>
+
+                    <!-- RTL/Urdu Designs -->
+                    <div class="design-category-content" id="rtlDesignContent">
+                        <div class="grid-options" id="rtlDesignStyleGrid">
+                            <button class="option-btn selected" data-value="urdu-poster"><span class="emoji">📜</span><span class="lang-text" data-en="Poster" data-ur="پوسٹر">Poster</span></button>
+                            <button class="option-btn" data-value="urdu-calligraphy"><span class="emoji">🖌️</span><span class="lang-text" data-en="Calligraphy" data-ur="خطاطی">Calligraphy</span></button>
+                            <button class="option-btn" data-value="urdu-invitation"><span class="emoji">✉️</span><span class="lang-text" data-en="Invitation Card" data-ur="دعوت نامہ">Invitation Card</span></button>
+                            <button class="option-btn" data-value="islamic-event"><span class="emoji">🕌</span><span class="lang-text" data-en="Islamic Event" data-ur="اسلامی تقریب">Islamic Event</span></button>
+                            <button class="option-btn" data-value="urdu-infographic"><span class="emoji">📊</span><span class="lang-text" data-en="Urdu Infographic" data-ur="اردو انفوگرافک">Urdu Infographic</span></button>
+                            <button class="option-btn" data-value="arabic-typography"><span class="emoji">🔤</span><span class="lang-text" data-en="Arabic Typography" data-ur="عربی ٹائپوگرافی">Arabic Typography</span></button>
+                            <button class="option-btn" data-value="farsi-design"><span class="emoji">🇮🇷</span><span class="lang-text" data-en="Farsi Design" data-ur="فارسی ڈیزائن">Farsi Design</span></button>
+                            <button class="option-btn" data-value="islamic-pattern"><span class="emoji">⭐</span><span class="lang-text" data-en="Islamic Pattern" data-ur="اسلامی پیٹرن">Islamic Pattern</span></button>
+                        </div>
+                        
+                        <!-- Urdu Font Selection -->
+                        <div class="urdu-font-section active" id="urduFontSection">
+                            <label class="input-label"><span class="lang-text" data-en="Select Urdu Font Style" data-ur="اردو فونٹ کا انداز">Select Urdu Font Style</span></label>
+                            <div class="urdu-font-grid" id="urduFontGrid">
+                                <button class="urdu-font-btn selected" data-font="nastaliq" onclick="selectUrduFont('nastaliq')">
+                                    <div class="font-preview" style="font-family: 'Noto Nastaliq Urdu', serif;">اردو</div>
+                                    <div class="font-name">Nastaliq</div>
+                                </button>
+                                <button class="urdu-font-btn" data-font="vazirmatn" onclick="selectUrduFont('vazirmatn')">
+                                    <div class="font-preview" style="font-family: 'Vazirmatn', sans-serif;">اردو</div>
+                                    <div class="font-name">Vazirmatn</div>
+                                </button>
+                                <button class="urdu-font-btn" data-font="traditional" onclick="selectUrduFont('traditional')">
+                                    <div class="font-preview" style="font-family: 'Noto Nastaliq Urdu', serif; font-weight: 700;">اردو</div>
+                                    <div class="font-name">Traditional Bold</div>
+                                </button>
+                                <button class="urdu-font-btn" data-font="modern" onclick="selectUrduFont('modern')">
+                                    <div class="font-preview" style="font-family: 'Vazirmatn', sans-serif; font-weight: 500;">اردو</div>
+                                    <div class="font-name">Modern</div>
+                                </button>
+                                <button class="urdu-font-btn" data-font="elegant" onclick="selectUrduFont('elegant')">
+                                    <div class="font-preview" style="font-family: 'Noto Nastaliq Urdu', serif; font-style: italic;">اردو</div>
+                                    <div class="font-name">Elegant</div>
+                                </button>
+                                <button class="urdu-font-btn" data-font="simple" onclick="selectUrduFont('simple')">
+                                    <div class="font-preview" style="font-family: 'Vazirmatn', sans-serif; font-weight: 400;">اردو</div>
+                                    <div class="font-name">Simple</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Prompt Style -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>📋</span> <span class="lang-text" data-en="Output Prompt Style" data-ur="آوٹ پٹ اسٹائل">Output Prompt Style</span></h2>
+                    <span class="toggle-icon collapsed">▼</span>
+                </div>
+                <div class="card-body collapsed">
+                    <div class="grid-options" id="outputStyleGrid">
+                        <button class="option-btn selected" data-value="standard"><span class="emoji">📝</span><span class="lang-text" data-en="Standard" data-ur="معیاری">Standard</span></button>
+                        <button class="option-btn" data-value="detailed"><span class="emoji">📄</span><span class="lang-text" data-en="Detailed" data-ur="تفصیلی">Detailed</span></button>
+                        <button class="option-btn" data-value="short"><span class="emoji">⚡</span><span class="lang-text" data-en="Short" data-ur="مختصر">Short</span></button>
+                        <button class="option-btn" data-value="cot"><span class="emoji">🔗</span><span class="lang-text" data-en="Chain of Thought" data-ur="سلسلہ">CoT</span></button>
+                        <button class="option-btn" data-value="tot"><span class="emoji">🌳</span><span class="lang-text" data-en="Tree of Thought" data-ur="درخت">ToT</span></button>
+                        <button class="option-btn" data-value="photographer"><span class="emoji">📷</span><span class="lang-text" data-en="Photographer" data-ur="فوتوگرافر">Photo</span></button>
+                        <button class="option-btn" data-value="cinematic"><span class="emoji">🎬</span><span class="lang-text" data-en="Cinematic" data-ur="سینما">Cinematic</span></button>
+                        <button class="option-btn" data-value="midjourney"><span class="emoji">🎨</span><span class="lang-text" data-en="Midjourney" data-ur="مڈجرنی">Midjourney</span></button>
+                        <button class="option-btn" data-value="dalle"><span class="emoji">🖼️</span><span class="lang-text" data-en="DALL-E" data-ur="ڈیل">DALL-E</span></button>
+                        <button class="option-btn" data-value="stable-diffusion"><span class="emoji">🌊</span><span class="lang-text" data-en="Stable Diff" data-ur="اسٹیبل">Stable Diff</span></button>
+                        <button class="option-btn" data-value="adobe-firefly"><span class="emoji">🔥</span><span class="lang-text" data-en="Firefly" data-ur="فائرفلائی">Firefly</span></button>
+                        <button class="option-btn" data-value="professional"><span class="emoji">🏆</span><span class="lang-text" data-en="Professional" data-ur="پیشہ ور">Professional</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt Variants -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>📚</span> <span class="lang-text" data-en="Prompt Variants" data-ur="پرامپٹ وریئنٹس">Prompt Variants</span></h2>
+                    <span class="toggle-icon collapsed">▼</span>
+                </div>
+                <div class="card-body collapsed">
+                    <label class="input-label lang-text" data-en="Number of variants to generate" data-ur="وریئنٹس کی تعداد">Number of variants to generate</label>
+                    <div class="variant-control">
+                        <button class="variant-btn" onclick="adjustVariants(-1)">−</button>
+                        <span class="variant-num" id="variantCount">3</span>
+                        <button class="variant-btn" onclick="adjustVariants(1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pollinations Model Selection -->
+            <div class="card">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <h2 class="card-title"><span>🤖</span> <span class="lang-text" data-en="AI Image Model" data-ur="AI امیج ماڈل">AI Image Model</span></h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-body">
+                    <div class="model-section">
+                        <div class="model-grid" id="modelGrid">
+                            <button class="model-btn selected" data-model="flux" data-width="1024" data-height="1024">
+                                <strong>🔥 Flux</strong><br>Best Quality
+                            </button>
+                            <button class="model-btn" data-model="flux-realism" data-width="1024" data-height="1024">
+                                <strong>📸 Flux Real</strong><br>Photorealistic
+                            </button>
+                            <button class="model-btn" data-model="turbo" data-width="1024" data-height="1024">
+                                <strong>⚡ Turbo</strong><br>Fast
+                            </button>
+                            <button class="model-btn" data-model="flux-anime" data-width="1024" data-height="1024">
+                                <strong>🎌 Anime</strong><br>Anime Style
+                            </button>
+                            <button class="model-btn" data-model="any-dark" data-width="1024" data-height="1024">
+                                <strong>🌙 Dark</strong><br>Dark Fantasy
+                            </button>
+                            <button class="model-btn" data-model="flux-pro" data-width="1024" data-height="1024">
+                                <strong>👑 Pro</strong><br>Professional
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="generate-btn" onclick="generatePrompts()">
+                    <span>✨</span> <span class="lang-text" data-en="Generate Prompts" data-ur="پرامپٹس بنائیں">Generate Prompts</span>
+                </button>
+                
+                <button class="generate-btn generate-image" onclick="generateImage()">
+                    <span>🖼️</span> <span class="lang-text" data-en="Generate Image" data-ur="تصویر بنائیں">Generate Image</span>
+                </button>
+            </div>
+
+            <!-- History Section -->
+            <div class="history-card">
+                <div class="history-header">
+                    <h3 class="history-title">📜 <span class="lang-text" data-en="Prompt History" data-ur="پرامپٹ ہسٹری">Prompt History</span></h3>
+                    <button class="clear-history" onclick="clearHistory()"><span class="lang-text" data-en="Clear All" data-ur="سب مٹائیں">Clear All</span></button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <div class="empty-state" style="padding: 1rem;">
+                        <p class="lang-text" data-en="No history yet" data-ur="ابھی تک کوئی ہسٹری نہیں">No history yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="output-section">
+            <div class="output-card">
+                <div class="output-header">
+                    <h2 class="output-title"><span>💡</span> <span class="lang-text" data-en="Generated Prompts" data-ur="تولید شدہ پرامپٹس">Generated Prompts</span></h2>
+                    <div class="variant-tabs" id="variantTabs">
+                        <button class="variant-tab active" data-variant="1" onclick="switchVariant(1)">V1</button>
+                        <button class="variant-tab" data-variant="2" onclick="switchVariant(2)">V2</button>
+                        <button class="variant-tab" data-variant="3" onclick="switchVariant(3)">V3</button>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p class="lang-text" data-en="Generating prompts..." data-ur="پرامپٹس بنائے جا رہے ہیں...">Generating prompts...</p>
+                </div>
+
+                <div id="outputContent">
+                    <div class="empty-state">
+                        <div class="empty-icon">🎨</div>
+                        <p class="lang-text" data-en="Your prompts will appear here" data-ur="آپ کے پرامپٹس یہاں ظاہر ہوں گے">Your prompts will appear here</p>
+                    </div>
+                </div>
+
+                <!-- Image Preview Section -->
+                <div class="image-preview-section" id="imagePreviewSection">
+                    <div class="image-preview-header">
+                        <div class="image-preview-title">
+                            <span>🖼️</span> <span class="lang-text" data-en="Generated Image" data-ur="تولید شدہ تصویر">Generated Image</span>
+                            <span class="api-badge">🌸 Pollinations AI</span>
+                        </div>
+                        <span class="model-badge" id="modelBadge" style="font-size: 0.75rem; color: var(--text-muted);">Flux</span>
+                    </div>
+                    
+                    <div class="image-preview-container" id="imagePreviewContainer">
+                        <img id="generatedImage" src="" alt="Generated Image" style="display: none;">
+                        <div class="image-loader" id="imageLoader">
+                            <div class="image-spinner"></div>
+                            <p class="image-loading-text lang-text" data-en="Creating your image..." data-ur="آپ کی تصویر بنائی جا رہی ہے...">Creating your image...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="image-actions">
+                        <button class="image-action-btn download" onclick="downloadImage()">
+                            <span>⬇️</span> <span class="lang-text" data-en="Download" data-ur="ڈاؤن لوڈ">Download</span>
+                        </button>
+                        <button class="image-action-btn" onclick="copyImageURL()">
+                            <span>🔗</span> <span class="lang-text" data-en="Copy URL" data-ur="لنک کاپی">Copy URL</span>
+                        </button>
+                        <button class="image-action-btn" onclick="regenerateImage()">
+                            <span>🔄</span> <span class="lang-text" data-en="Regenerate" data-ur="دوبارہ بنائیں">Regenerate</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ==================== STATE ====================
+        let currentLang = 'en';
+        let variantCount = 3;
+        let currentVariant = 1;
+        let generatedPrompts = { 1: null, 2: null, 3: null };
+        let promptHistory = JSON.parse(localStorage.getItem('promptHistory')) || [];
+        
+        // Selected values
+        let selectedPlatform = 'instagram';
+        let selectedRatio = '1:1';
+        let selectedColorMode = 'default';
+        let selectedPalette = null;
+        let selectedColorCount = 3;
+        let selectedDetails = ['high-quality'];
+        let selectedDesignCategory = 'general';
+        let selectedDesignStyle = 'realistic';
+        let selectedUrduFont = 'nastaliq';
+        let selectedOutputStyle = 'standard';
+        
+        // Pollinations settings
+        let selectedModel = 'flux';
+        let selectedWidth = 1024;
+        let selectedHeight = 1024;
+        let currentImageURL = '';
+        let currentSeed = Math.floor(Math.random() * 1000000);
+
+        // ==================== COLOR PALETTES DATABASE ====================
+        const colorPalettes = {
+            warmSunset: { name: 'Warm Sunset', colors: ['#FF6B35', '#F7C548', '#E63946', '#FF8C00'], desc: 'Warm golden tones' },
+            goldenGlow: { name: 'Golden Glow', colors: ['#FFD700', '#FFA500', '#FF8C00', '#DAA520'], desc: 'Rich golden tones' },
+            oceanBreeze: { name: 'Ocean Breeze', colors: ['#0077B6', '#00B4D8', '#90E0EF', '#48CAE4'], desc: 'Refreshing blue tones' },
+            emeraldForest: { name: 'Emerald Forest', colors: ['#2A9D8F', '#264653', '#219EBC', '#8ECAE6'], desc: 'Deep teal and green' },
+            twilight: { name: 'Twilight', colors: ['#1D3557', '#457B9D', '#A8DADC', '#1A1A2E'], desc: 'Cool blue tones' },
+            earthTones: { name: 'Earth Tones', colors: ['#6B705C', '#A5A58D', '#B7B7A4', '#DDBEA9'], desc: 'Natural earth tones' },
+            monochrome: { name: 'Monochrome', colors: ['#2B2D42', '#8D99AE', '#EDF2F4', '#1A1A1A'], desc: 'Classic black/white' },
+            neonDream: { name: 'Neon Dream', colors: ['#FF006E', '#8338EC', '#3A86FF', '#06D6A0'], desc: 'Bold neon colors' },
+            rainbow: { name: 'Vibrant Rainbow', colors: ['#FF006E', '#FFBE0B', '#8338EC', '#06D6A0', '#3A86FF'], desc: 'Full spectrum' },
+            goldenHour: { name: 'Golden Hour', colors: ['#FF8C00', '#FFD700', '#FFA500', '#F4A460'], desc: 'Magical sunset' },
+            cinematic: { name: 'Cinematic', colors: ['#2c1810', '#4a3728', '#8b4513', '#d4a373'], desc: 'Movie quality' },
+            minimalWhite: { name: 'Minimal White', colors: ['#FFFFFF', '#F5F5F5', '#E0E0E0', '#BDBDBD'], desc: 'Clean white' },
+            corporateBlue: { name: 'Corporate Blue', colors: ['#0D47A1', '#1565C0', '#1976D2', '#42A5F5'], desc: 'Trustworthy blue' },
+            luxury: { name: 'Luxury Gold', colors: ['#FFD700', '#B8860B', '#DAA520', '#F5F5DC'], desc: 'Elegant gold' },
+            islamic: { name: 'Islamic Green', colors: ['#155734', '#228B22', '#90EE90', '#FFD700'], desc: 'Traditional green/gold' },
+            arabic: { name: 'Arabic Elegance', colors: ['#1E3A5F', '#C9A227', '#FFFFFF', '#0F4C75'], desc: 'Arabic aesthetic' }
+        };
+
+        const styleToPalette = {
+            'realistic': 'oceanBreeze', 'digital-art': 'neonDream', '3d-render': 'cinematic',
+            'illustration': 'earthTones', 'anime': 'rainbow', 'abstract': 'rainbow', 'minimalist': 'minimalWhite',
+            'watercolor': 'goldenGlow', 'vintage': 'goldenHour', 'pop-art': 'neonDream', 'cyberpunk': 'neonDream',
+            'fantasy': 'twilight', 'urdu-poster': 'islamic', 'urdu-calligraphy': 'arabic', 'urdu-invitation': 'luxury',
+            'islamic-event': 'islamic', 'urdu-infographic': 'corporateBlue', 'arabic-typography': 'arabic',
+            'farsi-design': 'islamic', 'islamic-pattern': 'islamic', 'infographic': 'corporateBlue', 'bold': 'neonDream',
+            'editorial': 'earthTones', 'lifelike': 'oceanBreeze', 'commercial': 'corporateBlue'
+        };
+
+        const urduFontDescriptions = {
+            'nastaliq': 'traditional Nastaliq calligraphy style',
+            'vazirmatn': 'modern Vazirmatn sans-serif',
+            'traditional': 'bold traditional Nastaliq',
+            'modern': 'clean modern Urdu',
+            'elegant': 'elegant Nastaliq script',
+            'simple': 'simple readable Urdu'
+        };
+
+        // ==================== RANDOM DATA ====================
+        const randomPrompts = [
+            "A majestic lion standing on a rock at sunset",
+            "A futuristic city with flying cars and neon lights",
+            "A serene mountain lake with reflection of peaks",
+            "An enchanted forest with glowing mushrooms",
+            "A cozy coffee shop on a rainy day",
+            "A beautiful Urdu calligraphy design",
+            "An Islamic geometric pattern",
+            "A Urdu poster for event promotion"
+        ];
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            setupEventListeners();
+            setupModelSelection();
+            initColorPalettes();
+            renderHistory();
+            setupDesignStyleListeners();
+        });
+
+        function toggleCard(header) {
+            const body = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            body.classList.toggle('collapsed');
+            icon.classList.toggle('collapsed');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.querySelector('.theme-toggle').textContent = newTheme === 'light' ? '🌙' : '☀️';
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.querySelector('.theme-toggle').textContent = savedTheme === 'light' ? '🌙' : '☀️';
+        }
+
+        // ==================== DESIGN STYLE CATEGORY ====================
+        function switchDesignCategory(category) {
+            selectedDesignCategory = category;
+            
+            document.querySelectorAll('.design-category-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.category === category);
+            });
+            
+            document.getElementById('generalDesignContent').classList.toggle('active', category === 'general');
+            document.getElementById('rtlDesignContent').classList.toggle('active', category === 'rtl');
+            
+            const fontSection = document.getElementById('urduFontSection');
+            if (category === 'rtl') {
+                fontSection.classList.add('active');
+            } else {
+                fontSection.classList.remove('active');
+            }
+        }
+
+        function selectUrduFont(font) {
+            selectedUrduFont = font;
+            document.querySelectorAll('.urdu-font-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.font === font);
+            });
+        }
+
+        function setupDesignStyleListeners() {
+            // General design styles
+            document.querySelectorAll('#designStyleGrid .option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#designStyleGrid .option-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedDesignStyle = this.dataset.value;
+                    
+                    if (selectedColorMode === 'default') {
+                        selectDefaultPalette();
+                    }
+                });
+            });
+
+            // RTL design styles
+            document.querySelectorAll('#rtlDesignStyleGrid .option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#rtlDesignStyleGrid .option-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedDesignStyle = this.dataset.value;
+                    
+                    if (selectedColorMode === 'default') {
+                        selectDefaultPalette();
+                    }
+                });
+            });
+        }
+
+        // ==================== COLOR PALETTE FUNCTIONS ====================
+        function initColorPalettes() {
+            renderPaletteGrid();
+            selectDefaultPalette();
+        }
+
+        function renderPaletteGrid() {
+            const grid = document.getElementById('paletteGrid');
+            grid.innerHTML = '';
+            
+            for (const [key, palette] of Object.entries(colorPalettes)) {
+                const btn = document.createElement('div');
+                btn.className = 'palette-btn';
+                btn.dataset.palette = key;
+                btn.onclick = () => selectPalette(key);
+                
+                const preview = document.createElement('div');
+                preview.className = 'palette-preview';
+                palette.colors.slice(0, 4).forEach(color => {
+                    const colorDiv = document.createElement('div');
+                    colorDiv.className = 'palette-color';
+                    colorDiv.style.background = color;
+                    preview.appendChild(colorDiv);
+                });
+                
+                const name = document.createElement('div');
+                name.className = 'palette-name';
+                name.textContent = palette.name;
+                
+                const colorsList = document.createElement('div');
+                colorsList.className = 'palette-colors-list';
+                palette.colors.slice(0, 4).forEach(color => {
+                    const dot = document.createElement('span');
+                    dot.className = 'palette-color-dot';
+                    dot.style.background = color;
+                    dot.title = color;
+                    colorsList.appendChild(dot);
+                });
+                
+                btn.appendChild(preview);
+                btn.appendChild(name);
+                btn.appendChild(colorsList);
+                grid.appendChild(btn);
+            }
+        }
+
+        function selectDefaultPalette() {
+            let defaultPaletteKey = styleToPalette[selectedDesignStyle] || 'oceanBreeze';
+            if (selectedPalette && colorPalettes[selectedPalette]) {
+                defaultPaletteKey = selectedPalette;
+            }
+            selectPalette(defaultPaletteKey);
+        }
+
+        function selectPalette(key) {
+            selectedPalette = key;
+            const palette = colorPalettes[key];
+            
+            document.querySelectorAll('.palette-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.palette === key);
+            });
+            
+            const colorsContainer = document.getElementById('selectedPaletteColors');
+            colorsContainer.innerHTML = '';
+            
+            palette.colors.slice(0, selectedColorCount).forEach(color => {
+                const swatch = document.createElement('div');
+                swatch.className = 'selected-color-swatch';
+                swatch.style.background = color;
+                swatch.title = color;
+                colorsContainer.appendChild(swatch);
+            });
+            
+            document.getElementById('selectedPaletteTitle').textContent = palette.name;
+            document.getElementById('selectedPaletteDesc').textContent = palette.desc;
+        }
+
+        function setColorMode(mode) {
+            selectedColorMode = mode;
+            
+            document.querySelectorAll('.color-mode-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.mode === mode);
+            });
+            
+            const countSection = document.getElementById('colorCountSection');
+            const paletteSelection = document.getElementById('paletteSelection');
+            
+            if (mode === 'manual') {
+                countSection.style.display = 'block';
+                paletteSelection.style.display = 'block';
+            } else {
+                countSection.style.display = 'none';
+                selectDefaultPalette();
+            }
+        }
+
+        function adjustColorCount(delta) {
+            selectedColorCount = Math.max(2, Math.min(5, selectedColorCount + delta));
+            document.getElementById('colorCountNum').textContent = selectedColorCount;
+            if (selectedPalette) {
+                selectPalette(selectedPalette);
+            }
+        }
+
+        // ==================== MODEL SELECTION ====================
+        function setupModelSelection() {
+            document.querySelectorAll('.model-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedModel = this.dataset.model;
+                    selectedWidth = parseInt(this.dataset.width);
+                    selectedHeight = parseInt(this.dataset.height);
+                });
+            });
+        }
+
+        // ==================== POLLINATIONS IMAGE GENERATION ====================
+        async function generateImage() {
+            let prompt = '';
+            if (generatedPrompts[currentVariant]) {
+                prompt = generatedPrompts[currentVariant].en;
+            } else {
+                prompt = document.getElementById('inputText').value.trim();
+            }
+            
+            if (!prompt) {
+                alert(currentLang === 'ur' ? 'براہ کرم پہلے پرامپٹ بنائیں یا اپنا متن درج کریں' : 'Please generate a prompt or enter text first');
+                return;
+            }
+
+            const imageSection = document.getElementById('imagePreviewSection');
+            const imageLoader = document.getElementById('imageLoader');
+            const generatedImage = document.getElementById('generatedImage');
+            
+            imageSection.classList.add('active');
+            imageLoader.style.display = 'flex';
+            generatedImage.style.display = 'none';
+            
+            document.getElementById('modelBadge').textContent = selectedModel.toUpperCase();
+            imageLoader.innerHTML = `<div class="image-spinner"></div><p class="image-loading-text">${currentLang === 'ur' ? 'آپ کی تصویر بنائی جا رہی ہے...' : 'Creating your image...'}</p>`;
+
+            currentSeed = Math.floor(Math.random() * 1000000);
+            const encodedPrompt = encodeURIComponent(prompt);
+            
+            const pollinationsURL = `https://pollinations.ai/prompt/${encodedPrompt}?width=${selectedWidth}&height=${selectedHeight}&nologo=true&seed=${currentSeed}&model=${selectedModel}`;
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+                currentImageURL = pollinationsURL;
+                generatedImage.src = pollinationsURL;
+                imageLoader.style.display = 'none';
+                generatedImage.style.display = 'block';
+            };
+            
+            img.onerror = function() {
+                imageLoader.innerHTML = `<p style="color: #ff6b6b;">${currentLang === 'ur' ? 'تصویر بنانے میں ناکام ہوگیا' : 'Failed to generate image'}</p>
+                <button onclick="generateImage()" style="margin-top: 10px; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer;">${currentLang === 'ur' ? 'دوبارہ کوشش کریں' : 'Try Again'}</button>`;
+            };
+            
+            img.src = pollinationsURL;
+        }
+
+        function regenerateImage() {
+            currentSeed = Math.floor(Math.random() * 1000000);
+            const prompt = generatedPrompts[currentVariant]?.en || document.getElementById('inputText').value.trim();
+            
+            const imageLoader = document.getElementById('imageLoader');
+            const generatedImage = document.getElementById('generatedImage');
+            
+            imageLoader.style.display = 'flex';
+            generatedImage.style.display = 'none';
+            imageLoader.innerHTML = `<div class="image-spinner"></div><p class="image-loading-text">${currentLang === 'ur' ? 'آپ کی تصویر بنائی جا رہی ہے...' : 'Creating your image...'}</p>`;
+            
+            const encodedPrompt = encodeURIComponent(prompt);
+            const pollinationsURL = `https://pollinations.ai/prompt/${encodedPrompt}?width=${selectedWidth}&height=${selectedHeight}&nologo=true&seed=${currentSeed}&model=${selectedModel}`;
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+                currentImageURL = pollinationsURL;
+                generatedImage.src = pollinationsURL;
+                imageLoader.style.display = 'none';
+                generatedImage.style.display = 'block';
+            };
+            
+            img.onerror = function() {
+                imageLoader.innerHTML = `<p style="color: #ff6b6b;">${currentLang === 'ur' ? 'تصویر بنانے میں ناکام ہوگیا' : 'Failed to generate image'}</p>`;
+            };
+            
+            img.src = pollinationsURL;
+        }
+
+        function downloadImage() {
+            if (!currentImageURL) {
+                alert(currentLang === 'ur' ? 'کوئی تصویر نہیں ہے' : 'No image to download');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.href = currentImageURL;
+            link.download = `PromptSaz-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function copyImageURL() {
+            if (!currentImageURL) {
+                alert(currentLang === 'ur' ? 'کوئی تصویر نہیں ہے' : 'No image URL');
+                return;
+            }
+            
+            navigator.clipboard.writeText(currentImageURL).then(() => {
+                alert(currentLang === 'ur' ? 'لنک کاپی ہوگیا!' : 'URL copied!');
+            });
+        }
+
+        // ==================== LANGUAGE ====================
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+            
+            document.documentElement.dir = lang === 'ur' ? 'rtl' : 'ltr';
+            
+            document.querySelectorAll('.lang-text').forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`);
+            });
+            
+            const inputText = document.getElementById('inputText');
+            inputText.placeholder = lang === 'ur' 
+                ? 'اپنے تصویر کے تصور کی وضاحت کریں...' 
+                : 'A beautiful sunset over mountains with birds flying...';
+            
+            renderHistory();
+            displayCurrentVariant();
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        function setupEventListeners() {
+            // Platform
+            document.querySelectorAll('#platformGrid .option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#platformGrid .option-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedPlatform = this.dataset.value;
+                });
+            });
+
+            // Aspect Ratio
+            document.querySelectorAll('.aspect-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedRatio = this.dataset.value;
+                });
+            });
+
+            // Output Style
+            document.querySelectorAll('#outputStyleGrid .option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#outputStyleGrid .option-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedOutputStyle = this.dataset.value;
+                });
+            });
+
+            // Details
+            document.querySelectorAll('.detail-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    const value = this.dataset.value;
+                    
+                    if (selectedDetails.includes(value)) {
+                        const idx = selectedDetails.indexOf(value);
+                        selectedDetails.splice(idx, 1);
+                    } else {
+                        selectedDetails.push(value);
+                    }
+                    
+                    if (selectedDetails.length === 0) {
+                        selectedDetails.push('high-quality');
+                        document.querySelector('.detail-btn[data-value="high-quality"]').classList.add('selected');
+                    }
+                });
+            });
+        }
+
+        function adjustVariants(delta) {
+            variantCount = Math.max(1, Math.min(5, variantCount + delta));
+            document.getElementById('variantCount').textContent = variantCount;
+            
+            const tabsContainer = document.getElementById('variantTabs');
+            tabsContainer.innerHTML = Array.from({ length: variantCount }, (_, i) => `
+                <button class="variant-tab ${i + 1 === currentVariant ? 'active' : ''}" 
+                        data-variant="${i + 1}" 
+                        onclick="switchVariant(${i + 1})">V${i + 1}</button>
+            `).join('');
+        }
+
+        function switchVariant(variant) {
+            currentVariant = variant;
+            document.querySelectorAll('.variant-tab').forEach(tab => {
+                tab.classList.toggle('active', parseInt(tab.dataset.variant) === variant);
+            });
+            displayCurrentVariant();
+        }
+
+        // ==================== OUTPUT DISPLAY & COPY FUNCTIONS ====================
+        function displayCurrentVariant() {
+            const prompt = generatedPrompts[currentVariant];
+            const content = document.getElementById('outputContent');
+            const loading = document.getElementById('loading');
+            
+            loading.classList.remove('active');
+            
+            if (!prompt) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎨</div>
+                        <p class="lang-text" data-en="Your prompts will appear here" data-ur="آپ کے پرامپٹس یہاں ظاہر ہوں گے">Your prompts will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            content.innerHTML = `
+                <div class="output-box">
+                    <div class="output-label">English</div>
+                    <div class="output-text">${prompt.en}</div>
+                </div>
+                <div class="output-box">
+                    <div class="output-label">اردو</div>
+                    <div class="output-text" style="font-family: 'Noto Nastaliq Urdu', serif;">${prompt.ur}</div>
+                </div>
+                <div class="output-actions">
+                    <button class="action-btn" id="copyEnglishBtn">
+                        <span>📋</span> <span class="lang-text" data-en="Copy English" data-ur="انگریزی کاپی">Copy English</span>
+                    </button>
+                    <button class="action-btn" id="copyUrduBtn">
+                        <span>📋</span> <span class="lang-text" data-en="Copy Urdu" data-ur="اردو کاپی">Copy Urdu</span>
+                    </button>
+                    <button class="action-btn" id="copyAllBtn">
+                        <span>📋</span> <span class="lang-text" data-en="Copy All" data-ur="سب کاپی">Copy All</span>
+                    </button>
+                </div>
+            `;
+            
+            // Attach event listeners directly to buttons
+            document.getElementById('copyEnglishBtn').addEventListener('click', function() {
+                copyEnglishPrompt(this);
+            });
+            document.getElementById('copyUrduBtn').addEventListener('click', function() {
+                copyUrduPrompt(this);
+            });
+            document.getElementById('copyAllBtn').addEventListener('click', function() {
+                copyAllPrompts(this);
+            });
+            
+            document.querySelectorAll('.lang-text').forEach(el => {
+                el.textContent = el.getAttribute(`data-${currentLang}`);
+            });
+        }
+
+        function copyEnglishPrompt(btn) {
+            const prompt = generatedPrompts[currentVariant];
+            if (!prompt) return;
+            
+            navigator.clipboard.writeText(prompt.en).then(() => {
+                showCopyFeedback(btn, 'en');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+            });
+        }
+
+        function copyUrduPrompt(btn) {
+            const prompt = generatedPrompts[currentVariant];
+            if (!prompt) return;
+            
+            navigator.clipboard.writeText(prompt.ur).then(() => {
+                showCopyFeedback(btn, 'ur');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+            });
+        }
+
+        function copyAllPrompts(btn) {
+            let allText = "";
+            
+            for (let i = 1; i <= variantCount; i++) {
+                if (generatedPrompts[i]) {
+                    allText += `=== Variant ${i} ===\n`;
+                    allText += `${generatedPrompts[i].en}\n\n`;
+                    allText += `${generatedPrompts[i].ur}\n`;
+                    allText += "\n";
+                }
+            }
+            
+            navigator.clipboard.writeText(allText).then(() => {
+                showCopyFeedback(btn, 'all');
+            }).catch(err => {
+                console.error('Copy all failed:', err);
+                alert(currentLang === 'ur' ? 'کاپی کرنے میں ناکام' : 'Failed to copy');
+            });
+        }
+
+        function showCopyFeedback(btn, type) {
+            const wasText = btn.innerHTML;
+            const copyText = type === 'en' ? 'Copied!' : type === 'ur' ? 'کاپی ہوگیا!' : 'All Copied!';
+            const copyTextUr = type === 'en' ? 'Copied!' : type === 'ur' ? 'کاپی ہوگیا!' : 'سب کاپی!';
+            
+            btn.classList.add('copied');
+            btn.innerHTML = `<span>✓</span> ${currentLang === 'ur' ? copyTextUr : copyText}`;
+            
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = wasText;
+                // Update language text
+                if (type === 'en') {
+                    btn.innerHTML = `<span>📋</span> <span class="lang-text" data-en="Copy English" data-ur="انگریزی کاپی">${currentLang === 'ur' ? 'انگریزی کاپی' : 'Copy English'}</span>`;
+                } else if (type === 'ur') {
+                    btn.innerHTML = `<span>📋</span> <span class="lang-text" data-en="Copy Urdu" data-ur="اردو کاپی">${currentLang === 'ur' ? 'اردو کاپی' : 'Copy Urdu'}</span>`;
+                } else {
+                    btn.innerHTML = `<span>📋</span> <span class="lang-text" data-en="Copy All" data-ur="سب کاپی">${currentLang === 'ur' ? 'سب کاپی' : 'Copy All'}</span>`;
+                }
+            }, 2000);
+        }
+
+        // ==================== HISTORY ====================
+        function addToHistory(prompts) {
+            const historyItem = {
+                id: Date.now(),
+                input: document.getElementById('inputText').value,
+                prompts: { ...prompts },
+                timestamp: new Date().toISOString()
+            };
+            
+            promptHistory.unshift(historyItem);
+            if (promptHistory.length > 20) {
+                promptHistory.pop();
+            }
+            
+            localStorage.setItem('promptHistory', JSON.stringify(promptHistory));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            
+            if (promptHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-state" style="padding: 1rem;">
+                        <p class="lang-text" data-en="No history yet" data-ur="ابھی تک کوئی ہسٹری نہیں">No history yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            historyList.innerHTML = promptHistory.map(item => {
+                const date = new Date(item.timestamp);
+                const dateStr = date.toLocaleDateString(currentLang === 'ur' ? 'ur-PK' : 'en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                
+                return `
+                    <div class="history-item" onclick="loadFromHistory(${item.id})">
+                        <div class="history-item-text">${item.input}</div>
+                        <div class="history-item-meta">${dateStr}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadFromHistory(id) {
+            const item = promptHistory.find(h => h.id === id);
+            if (!item) return;
+            
+            document.getElementById('inputText').value = item.input;
+            generatedPrompts = { ...item.prompts };
+            currentVariant = 1;
+            displayCurrentVariant();
+            
+            document.querySelectorAll('.variant-tab').forEach(tab => {
+                tab.classList.toggle('active', parseInt(tab.dataset.variant) === 1);
+            });
+        }
+
+        function clearHistory() {
+            if (confirm(currentLang === 'ur' ? 'کیا آپ ہسٹری صاف کرنا چاہتے ہیں؟' : 'Clear all history?')) {
+                promptHistory = [];
+                localStorage.removeItem('promptHistory');
+                renderHistory();
+            }
+        }
+
+        // ==================== PROMPT GENERATION ====================
+        function generatePrompts() {
+            const inputText = document.getElementById('inputText').value.trim();
+            if (!inputText) {
+                alert(currentLang === 'ur' ? 'براہ کرم اپنے تصور کی وضاحت کریں' : 'Please describe your concept');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('outputContent').innerHTML = '';
+
+            setTimeout(() => {
+                for (let i = 1; i <= variantCount; i++) {
+                    generatedPrompts[i] = generatePromptVariant(inputText, i);
+                }
+                
+                addToHistory(generatedPrompts);
+                displayCurrentVariant();
+            }, 800);
+        }
+
+        function generateRandomPrompt() {
+            const randomText = randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
+            document.getElementById('inputText').value = randomText;
+            
+            // Random selections
+            const randomPlatforms = ['instagram', 'facebook', 'twitter', 'youtube', 'pinterest'];
+            const randomRatios = ['1:1', '9:16', '16:9', '4:5', '4:3'];
+            const randomStyles = ['realistic', 'digital-art', '3d-render', 'illustration', 'anime', 'abstract', 'minimalist', 'fantasy', 'cyberpunk', 'watercolor', 'oil-painting', 'concept-art', 'infographic', 'bold', 'editorial', 'commercial', 'lifelike'];
+            const randomRtlStyles = ['urdu-poster', 'urdu-calligraphy', 'urdu-invitation', 'islamic-event', 'urdu-infographic', 'arabic-typography', 'farsi-design', 'islamic-pattern'];
+            const randomOutputStyles = ['standard', 'detailed', 'cot', 'tot', 'cinematic', 'professional'];
+            const randomDetails = ['high-quality', 'ultra-detailed', '8k', 'photorealistic', 'cinematic-lighting', 'golden-hour', 'bokeh', 'hdr', 'masterpiece'];
+            
+            // 70% general, 30% RTL
+            const useRtl = Math.random() > 0.7;
+            
+            if (useRtl) {
+                switchDesignCategory('rtl');
+                const rtlStyle = randomRtlStyles[Math.floor(Math.random() * randomRtlStyles.length)];
+                document.querySelectorAll('#rtlDesignStyleGrid .option-btn').forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.value === rtlStyle);
+                });
+                selectedDesignStyle = rtlStyle;
+            } else {
+                switchDesignCategory('general');
+                const style = randomStyles[Math.floor(Math.random() * randomStyles.length)];
+                document.querySelectorAll('#designStyleGrid .option-btn').forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.value === style);
+                });
+                selectedDesignStyle = style;
+            }
+            
+            const platform = randomPlatforms[Math.floor(Math.random() * randomPlatforms.length)];
+            document.querySelectorAll('#platformGrid .option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.value === platform);
+            });
+            selectedPlatform = platform;
+            
+            const ratio = randomRatios[Math.floor(Math.random() * randomRatios.length)];
+            document.querySelectorAll('.aspect-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.value === ratio);
+            });
+            selectedRatio = ratio;
+            
+            const outStyle = randomOutputStyles[Math.floor(Math.random() * randomOutputStyles.length)];
+            document.querySelectorAll('#outputStyleGrid .option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.value === outStyle);
+            });
+            selectedOutputStyle = outStyle;
+            
+            selectedDetails = [];
+            const numDetails = Math.floor(Math.random() * 3) + 2;
+            const shuffledDetails = [...randomDetails].sort(() => 0.5 - Math.random());
+            selectedDetails = shuffledDetails.slice(0, numDetails);
+            document.querySelectorAll('.detail-btn').forEach(btn => {
+                btn.classList.toggle('selected', selectedDetails.includes(btn.dataset.value));
+            });
+            
+            if (selectedColorMode === 'default') {
+                selectDefaultPalette();
+            }
+            
+            generatePrompts();
+        }
+
+        function generatePromptVariant(inputText, variantNum) {
+            const palette = selectedPalette ? colorPalettes[selectedPalette] : colorPalettes.oceanBreeze;
+            const colorDesc = palette ? `${palette.name.toLowerCase()} color palette, ${palette.desc.toLowerCase()}` : 'harmonious color palette';
+            
+            const platformSpecs = {
+                instagram: 'Instagram post, square format, mobile-optimized',
+                facebook: 'Facebook post, wide compatibility',
+                twitter: 'Twitter/X post, compressed quality',
+                youtube: 'YouTube thumbnail, clickbait-style',
+                tiktok: 'TikTok video frame, vertical format',
+                linkedin: 'LinkedIn post, professional',
+                pinterest: 'Pinterest pin, vertical format',
+                web: 'Website banner, responsive'
+            };
+
+            const ratioDescriptions = {
+                '1:1': '1:1 square (1080×1080)', '9:16': '9:16 vertical (1080×1920)',
+                '16:9': '16:9 landscape (1920×1080)', '4:3': '4:3 standard (1440×1080)',
+                '4:5': '4:5 portrait (1080×1350)', '2:3': '2:3 photo (1080×1620)'
+            };
+
+            // Extended design style descriptions
+            const designStyleDescriptions = {
+                'realistic': 'photorealistic style, true-to-life',
+                'digital-art': 'digital art style, modern',
+                '3d-render': '3D rendered, CGI quality',
+                'illustration': 'hand-drawn illustration',
+                'anime': 'anime style, manga aesthetic',
+                'abstract': 'abstract art, non-representational',
+                'minimalist': 'minimalist style, clean',
+                'watercolor': 'watercolor painting style',
+                'vintage': 'vintage style, retro',
+                'pop-art': 'pop art style, bold colors',
+                'cyberpunk': 'cyberpunk style, futuristic',
+                'fantasy': 'fantasy art, magical',
+                'infographic': 'infographic style, data visualization',
+                'bold': 'bold design, high contrast',
+                'editorial': 'editorial design, magazine style',
+                'lifelike': 'lifelike, extremely realistic',
+                'commercial': 'commercial design, marketing',
+                'urdu-poster': 'Urdu poster design, RTL layout',
+                'urdu-calligraphy': 'Urdu calligraphy, Nastaliq script',
+                'urdu-invitation': 'Urdu invitation card, elegant',
+                'islamic-event': 'Islamic event design, religious',
+                'urdu-infographic': 'Urdu infographic, RTL data',
+                'arabic-typography': 'Arabic typography, elegant script',
+                'farsi-design': 'Farsi design, Persian aesthetic',
+                'islamic-pattern': 'Islamic geometric pattern, arabesque'
+            };
+
+            const detailDescriptions = {
+                'high-quality': 'high quality', 'ultra-detailed': 'ultra-detailed',
+                '8k': '8K resolution', '4k': '4K resolution',
+                'photorealistic': 'photorealistic', 'cinematic-lighting': 'cinematic lighting',
+                'soft-lighting': 'soft lighting', 'golden-hour': 'golden hour lighting',
+                'bokeh': 'bokeh effect', 'depth-of-field': 'depth of field',
+                'hdr': 'HDR', 'studio-lighting': 'studio lighting',
+                'masterpiece': 'masterpiece quality', 'award-winning': 'award-winning',
+                'trending': 'trending', 'vintage': 'vintage look'
+            };
+
+            const platformDesc = platformSpecs[selectedPlatform] || platformSpecs.instagram;
+            const ratioDesc = ratioDescriptions[selectedRatio] || ratioDescriptions['1:1'];
+            const styleDesc = designStyleDescriptions[selectedDesignStyle] || designStyleDescriptions.realistic;
+            const detailsDesc = selectedDetails.map(d => detailDescriptions[d]).filter(Boolean).join(', ');
+
+            let enPrompt = '';
+            
+            // Add Urdu font info for RTL designs
+            let fontInfo = '';
+            if (selectedDesignCategory === 'rtl') {
+                fontInfo = `, Urdu font: ${urduFontDescriptions[selectedUrduFont]}`;
+            }
+
+            switch (selectedOutputStyle) {
+                case 'standard':
+                    enPrompt = `${inputText}, ${styleDesc}, ${detailsDesc}, ${colorDesc}, ${platformDesc}, ${ratioDesc}${fontInfo}, professional quality, masterpiece`;
+                    break;
+                case 'detailed':
+                    enPrompt = `Create a stunning image of ${inputText}.\n\nStyle: ${styleDesc}\nColor Palette: ${colorDesc}\nDetails: ${detailsDesc}\nFormat: ${platformDesc} with ${ratioDesc}${fontInfo}\nQuality: Professional, masterpiece level`;
+                    break;
+                case 'short':
+                    enPrompt = `${inputText}, ${styleDesc}, ${colorDesc}, ${detailsDesc}`;
+                    break;
+                case 'cot':
+                    enPrompt = `[CoT] Subject: ${inputText}\n→ Style: ${styleDesc}\n→ Colors: ${colorDesc}\n→ Quality: ${detailsDesc}\n\nFinal: ${inputText}, ${styleDesc}, ${colorDesc}, ${detailsDesc}, ${platformDesc}`;
+                    break;
+                case 'tot':
+                    enPrompt = `[ToT]\nROOT: ${inputText}\nBRANCH 1: ${styleDesc}\nBRANCH 2: ${colorDesc}\nBRANCH 3: ${detailsDesc}\n\nSYNTHESIS: ${inputText}, ${styleDesc}, ${colorDesc}, ${detailsDesc}, masterpiece`;
+                    break;
+                case 'photographer':
+                    enPrompt = `PROFESSIONAL PHOTO: ${inputText}\nStyle: ${styleDesc}\nLighting: ${detailsDesc}\nColors: ${colorDesc}\nFINAL: ${inputText}, ${styleDesc}, ${colorDesc}, sharp focus`;
+                    break;
+                case 'cinematic':
+                    enPrompt = `🎬 CINEMATIC: ${inputText}\nStyle: ${styleDesc}\nMood: ${colorDesc}\nLighting: ${detailsDesc}\n\n${inputText}, ${styleDesc}, cinematic scene, ${colorDesc}, film grain, 4k`;
+                    break;
+                default:
+                    enPrompt = `${inputText}, ${styleDesc}, ${detailsDesc}, ${colorDesc}, ${platformDesc}, ${ratioDesc}${fontInfo}, high quality, masterpiece`;
+            }
+
+            const variantEnhancements = [
+                'golden hour lighting',
+                'blue hour atmosphere',
+                'studio lighting',
+                'natural lighting',
+                'dramatic lighting'
+            ];
+            
+            if (!enPrompt.includes(variantEnhancements[variantNum - 1])) {
+                enPrompt += `, ${variantEnhancements[variantNum - 1]}`;
+            }
+
+            const urduVariant = generateUrduPrompt(inputText, variantNum, colorDesc, fontInfo);
+            
+            return { en: enPrompt, ur: urduVariant };
+        }
+
+        function generateUrduPrompt(inputText, variantNum, colorDesc, fontInfo) {
+            const styleUrdu = {
+                'realistic': 'فوٹو ریلسٹک', 'digital-art': 'ڈیجیٹل آرٹ', '3d-render': '3D رینڈرنگ',
+                'illustration': 'تصویریں', 'anime': 'اینیمے', 'abstract': 'ابستریکٹ',
+                'minimalist': 'مینیمالسٹ', 'watercolor': 'پانی رنگ', 'vintage': 'قدیم',
+                'pop-art': 'پوپ آرٹ', 'cyberpunk': 'سائبرپنک', 'fantasy': 'فانٹیسی',
+                'infographic': 'انفوگرافک', 'bold': 'بولڈ', 'editorial': 'ایڈیٹوریل',
+                'lifelike': 'لائف لائک', 'commercial': 'کامرس',
+                'urdu-poster': 'اردو پوسٹر', 'urdu-calligraphy': 'اردو خطاطی',
+                'urdu-invitation': 'دعوت نامہ', 'islamic-event': 'اسلامی تقریب',
+                'urdu-infographic': 'اردو انفوگرافک', 'arabic-typography': 'عربی ٹائپوگرافی',
+                'farsi-design': 'فارسی ڈیزائن', 'islamic-pattern': 'اسلامی پیٹرن'
+            };
+
+            const detailUrdu = {
+                'high-quality': 'اعلی معیار', 'ultra-detailed': 'الٹرا تفصیلی',
+                '8k': '8K ریزولوشن', 'photorealistic': 'فوٹو ریلسٹک',
+                'cinematic-lighting': 'سینما لائٹنگ', 'golden-hour': 'سہ پہر', 'masterpiece': 'شاہکار'
+            };
+
+            const platformUrdu = {
+                instagram: 'انسٹاگرام', facebook: 'فیس بک', twitter: 'ٹوئٹر',
+                youtube: 'یوٹیوب', tiktok: 'ٹک ٹاک', linkedin: 'لنکڈ ان',
+                pinterest: 'پنٹرسٹ', web: 'ویب سائٹ'
+            };
+
+            const translatedStyle = styleUrdu[selectedDesignStyle] || 'فوٹو ریلسٹک';
+            const translatedDetails = selectedDetails.map(d => detailUrdu[d] || d).filter(Boolean).join('، ');
+            const translatedPlatform = platformUrdu[selectedPlatform] || 'ویب سائٹ';
+
+            let urPrompt = `${inputText} کی ایک شاندار تصویر۔
+
+انداز: ${translatedStyle}۔
+رنگ: ${colorDesc}۔
+تفصیلات: ${translatedDetails}۔
+پلیٹ فارم: ${translatedPlatform}۔${fontInfo}
+شاہکار معیار۔
+
+مکمل پرامپٹ: ${inputText}، ${translatedStyle}، ${translatedDetails}، ${colorDesc}`;
+
+            const urduEnhancements = ['، سہ پہر کی سنہری روشنی', '، نیلے وقت کا ماحول', '، پیشہ ورانہ لائٹنگ'];
+            urPrompt += urduEnhancements[variantNum - 1];
+
+            return urPrompt;
+        }
+    </script>
+</body>
+</html>
